@@ -41,6 +41,7 @@ public class ChatActivity extends AppCompatActivity implements LoaderManager.Loa
     protected void onResume() {
         super.onResume();
         getLoaderManager().initLoader(0, null, this);
+        ((ChatApplication) getApplication()).startBot();
     }
 
     @Override

@@ -11,6 +11,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
 
+import java.util.List;
 import java.util.Random;
 
 import ru.rzn.myasoedov.ga.chat.receiver.BotReceiver;
@@ -29,23 +30,20 @@ public class ChatApplication extends Application {
         super.onCreate();
         context = getApplicationContext();
         //// TODO: 19.08.2016 get lat lon
-        stopBot();
-        startBot();
+        //stopBot();
+        //startBot();
     }
 
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
-    private void startBot() {
+    public void startBot() {
         int currentApiVersion = android.os.Build.VERSION.SDK_INT;
-        if (currentApiVersion >= android.os.Build.VERSION_CODES.LOLLIPOP) {
+        if (currentApiVersion >= android.os.Build.VERSION_CODES.LOLLIPOP && !checkJobRunning()) {
             ComponentName serviceComponent = new ComponentName(context, BotJobService.class);
-            JobInfo.Builder builder = new JobInfo.Builder(0, serviceComponent);
-            Random random = new Random();
-           // builder.setMinimumLatency(BuildConfig.BOT_DEELAY); // wait at least
-           // builder.setOverrideDeadline(BuildConfig.BOT_DEELAY + random.nextInt(1000)); // maximum delay
-            builder.setRequiredNetworkType(JobInfo.NETWORK_TYPE_NONE); // require unmetered network
-            builder.setRequiresDeviceIdle(true); // device should be idle
-            builder.setRequiresCharging(false); // we don't care if the device is charging or not
-            builder.setPeriodic(5000);
+            JobInfo.Builder builder = new JobInfo.Builder(0, serviceComponent)
+                    .setRequiredNetworkType(JobInfo.NETWORK_TYPE_NONE)
+                    .setRequiresDeviceIdle(true)
+                    .setRequiresCharging(false)
+                    .setPeriodic(BuildConfig.BOT_DEELAY);
             JobScheduler jobScheduler = (JobScheduler) getSystemService(Context.JOB_SCHEDULER_SERVICE);
             jobScheduler.schedule(builder.build());
         } else {
@@ -60,11 +58,23 @@ public class ChatApplication extends Application {
     }
 
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+    private boolean checkJobRunning() {
+        JobScheduler jobScheduler = (JobScheduler) getSystemService(Context.JOB_SCHEDULER_SERVICE);
+        List<JobInfo> jobs = jobScheduler.getAllPendingJobs();
+        for (JobInfo jobInfo : jobs) {
+            if (jobInfo.getId() == 0) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
     public void stopBot() {
         int currentApiVersion = android.os.Build.VERSION.SDK_INT;
         if (currentApiVersion >= android.os.Build.VERSION_CODES.LOLLIPOP) {
-            JobScheduler tm = (JobScheduler) getSystemService(Context.JOB_SCHEDULER_SERVICE);
-            tm.cancelAll();
+            JobScheduler jobScheduler = (JobScheduler) getSystemService(Context.JOB_SCHEDULER_SERVICE);
+            jobScheduler.cancelAll();
         } else {
             if (pendingIntent != null) {
                 ((AlarmManager) getSystemService(ALARM_SERVICE)).cancel(pendingIntent);
