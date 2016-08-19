@@ -9,7 +9,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -29,14 +28,11 @@ public class ChatActivity extends AppCompatActivity implements LoaderManager.Loa
         setContentView(R.layout.activity_chat);
         Button button = (Button) findViewById(R.id.send);
         final TextView text = (TextView) findViewById(R.id.text);
-        button.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (!TextUtils.isEmpty(text.getText())) {
-                    Message message = new Message(text.getText().toString(), new Date(), true);
-                    text.setText("");
-                    getContentResolver().insert(MessageContract.CONTENT_URI, message.toContentValues());
-                }
+        button.setOnClickListener(v -> {
+            if (!TextUtils.isEmpty(text.getText())) {
+                Message message = new Message(text.getText().toString(), new Date(), true);
+                text.setText("");
+                getContentResolver().insert(MessageContract.CONTENT_URI, message.toContentValues());
             }
         });
     }
