@@ -39,4 +39,14 @@ public class Message {
         values.put(MessageContract.IS_MY, isMy);
         return values;
     }
+
+    @Override
+    public String toString() {
+        return "Message{" +
+                "id=" + id +
+                ", text='" + text + '\'' +
+                ", date=" + date +
+                ", isMy=" + isMy +
+                '}';
+    }
 }

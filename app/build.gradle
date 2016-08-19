@@ -19,6 +19,10 @@ android {
         buildConfigField "int", "DB_VERSION", "1"
         buildConfigField "String", "DB_NAME", "\"chat\""
         buildConfigField "int", "BOT_DEELAY", "3000"
+
+        jackOptions {
+            enabled true
+        }
     }
     buildTypes {
         release {

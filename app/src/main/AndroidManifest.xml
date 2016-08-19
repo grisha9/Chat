@@ -22,6 +22,8 @@
             android:exported="false"/>
         <receiver android:name=".receiver.BotReceiver"
             android:exported="false" />
+        <service android:name=".service.BotJobService"
+            android:permission="android.permission.BIND_JOB_SERVICE"/>
 
     </application>
 

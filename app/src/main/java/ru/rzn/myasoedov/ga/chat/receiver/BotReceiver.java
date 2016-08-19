@@ -14,11 +14,12 @@ import ru.rzn.myasoedov.ga.chat.dto.Message;
  * Created by User on 19.08.2016.
  */
 public class BotReceiver extends BroadcastReceiver {
+    private static final String TAG = "BotReceiver";
     @Override
     public void onReceive(Context context, Intent intent) {
         Date date = new Date();
         Message message = new Message(date.toString(), date, false);
-        Log.e("eee", "eee");
+        Log.d(TAG, message.toString());
         context.getContentResolver().insert(MessageContract.CONTENT_URI, message.toContentValues());
     }
 }

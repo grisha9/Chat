@@ -79,9 +79,9 @@ public class ChatActivity extends AppCompatActivity implements LoaderManager.Loa
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
 
-        //noinspection SimplifiableIfStatement
         if (id == R.id.action_exit) {
             ((ChatApplication) this.getApplication()).stopBot();
+            finish();
             return true;
         }
 
