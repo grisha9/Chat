@@ -44,7 +44,7 @@
         android:transcriptMode="alwaysScroll"/>
     <Button
         android:id="@+id/new_message"
-        android:background="@null"
+        android:background="#FFF"
         android:text="@string/new_message"
         android:visibility="gone"
         android:layout_width="match_parent"

@@ -24,7 +24,7 @@ public class BotJobService extends JobService {
 
     @Override
     public boolean onStopJob(JobParameters params) {
-        return false;
+        return true;
     }
 
 }
