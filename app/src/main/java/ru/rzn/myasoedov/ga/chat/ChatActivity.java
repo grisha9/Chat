@@ -1,5 +1,6 @@
 package ru.rzn.myasoedov.ga.chat;
 
+import android.Manifest;
 import android.app.LoaderManager;
 import android.app.NotificationManager;
 import android.content.BroadcastReceiver;
@@ -8,12 +9,14 @@ import android.content.CursorLoader;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.Loader;
+import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.support.annotation.NonNull;
+import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -22,6 +25,7 @@ import android.widget.Button;
 import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.util.Date;
 
@@ -36,6 +40,7 @@ public class ChatActivity extends AppCompatActivity implements LoaderManager.Loa
 
     public static final int NOT_SCROLL_OFFSET_ITEM = 3;
     public static final String NEW_MESSAGE_ACTION = ChatActivity.class.getName() + ".NEW_MESSAGE";
+    private static final int MY_PERMISSIONS_REQUEST = 0;
     private MessageObserver observer;
     private BroadcastReceiver messageDbReceiver;
 
@@ -160,8 +165,6 @@ public class ChatActivity extends AppCompatActivity implements LoaderManager.Loa
             @Override
             public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
                 int lastVisiblePosition = view.getLastVisiblePosition();
-                //Toast.makeText(ChatActivity.this, firstVisibleItem + "-" + i +"-"+totalItemCount, Toast.LENGTH_LONG).show();
-                Log.e("d", firstVisibleItem + "-" + lastVisiblePosition + "-" + totalItemCount);
                 if (totalItemCount - lastVisiblePosition < NOT_SCROLL_OFFSET_ITEM) {
                     BotReceiver.count = 0;
                     ((NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE)).cancel(0);
@@ -204,7 +207,44 @@ public class ChatActivity extends AppCompatActivity implements LoaderManager.Loa
     private void determineLocation() {
         if (!PreferenceManager.getDefaultSharedPreferences(this)
                 .getBoolean(ChatApplication.LOCATION_ON_FIRST_RUN, false)) {
-            getChatApplication().determineLocation();
+            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+                    != PackageManager.PERMISSION_GRANTED
+                    && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)
+                    != PackageManager.PERMISSION_GRANTED) {
+                Toast.makeText(this, R.string.no_location_permission, Toast.LENGTH_LONG).show();
+                View view = findViewById(R.id.content);
+                if (view == null) throw new RuntimeException("no view");;
+                view.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        ActivityCompat.requestPermissions(ChatActivity.this,
+                                new String[]{
+                                        Manifest.permission.ACCESS_FINE_LOCATION,
+                                        Manifest.permission.ACCESS_COARSE_LOCATION},
+                                MY_PERMISSIONS_REQUEST);
+
+                    }
+                });
+            } else {
+                getChatApplication().determineLocation();
+            }
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode,
+                                           @NonNull String permissions[],
+                                           @NonNull int[] grantResults) {
+        switch (requestCode) {
+            case MY_PERMISSIONS_REQUEST: {
+                if (grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    getChatApplication().determineLocation();
+                } else {
+                    Toast.makeText(this, R.string.no_location_permission, Toast.LENGTH_LONG).show();
+                }
+            }
+
         }
     }
 }

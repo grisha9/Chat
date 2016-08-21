@@ -1,6 +1,5 @@
 package ru.rzn.myasoedov.ga.chat;
 
-import android.Manifest;
 import android.annotation.TargetApi;
 import android.app.AlarmManager;
 import android.app.Application;
@@ -10,7 +9,6 @@ import android.app.job.JobScheduler;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -18,7 +16,6 @@ import android.location.LocationProvider;
 import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
-import android.support.v4.app.ActivityCompat;
 import android.widget.Toast;
 
 import java.util.Date;
@@ -104,14 +101,17 @@ public class ChatApplication extends Application implements LocationListener {
     }
 
     public void determineLocation() {
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
-                != PackageManager.PERMISSION_GRANTED
-                && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)
-                != PackageManager.PERMISSION_GRANTED) {
-            Toast.makeText(this, R.string.no_location_permission, Toast.LENGTH_LONG).show();
-            return;
-        }
         LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        Location bestLocation = getBestKnownLocation(locationManager);
+        if (bestLocation != null) {
+            addLocation(bestLocation);
+        } else {
+            getLocationFromProvider(locationManager);
+
+        }
+    }
+
+    private Location getBestKnownLocation(LocationManager locationManager) {
         List<String> matchingProviders = locationManager.getAllProviders();
         long currentTimeMillis = System.currentTimeMillis();
         Location bestLocation = null;
@@ -129,22 +129,21 @@ public class ChatApplication extends Application implements LocationListener {
                 }
             }
         }
-        if (bestLocation != null) {
-            addLocation(bestLocation);
-        } else {
-            boolean isGps = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
-            boolean isNetwork = locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
-            if (!isGps && !isNetwork) {
-                Toast.makeText(this, R.string.no_location_providers, Toast.LENGTH_LONG).show();
-                return;
-            }
-            LocationProvider locationProvider = (isNetwork)
-                    ? locationManager.getProvider(LocationManager.NETWORK_PROVIDER)
-                    : locationManager.getProvider(LocationManager.GPS_PROVIDER);
-            locationManager.requestLocationUpdates(locationProvider.getName(),
-                    PROVIDER_MIN_TIME, 0, this);
+        return bestLocation;
+    }
 
+    private void getLocationFromProvider(LocationManager locationManager) {
+        boolean isGps = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
+        boolean isNetwork = locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
+        if (!isGps && !isNetwork) {
+            Toast.makeText(this, R.string.no_location_providers, Toast.LENGTH_LONG).show();
+            return;
         }
+        LocationProvider locationProvider = (isNetwork)
+                ? locationManager.getProvider(LocationManager.NETWORK_PROVIDER)
+                : locationManager.getProvider(LocationManager.GPS_PROVIDER);
+        locationManager.requestLocationUpdates(locationProvider.getName(),
+                PROVIDER_MIN_TIME, 0, this);
     }
 
     private void addLocation(Location bestLocation) {
