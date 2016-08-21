@@ -5,6 +5,7 @@ import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.preference.PreferenceManager;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 
@@ -26,13 +27,22 @@ public class BotReceiver extends BroadcastReceiver {
 
     @Override
     public void onReceive(Context context, Intent intent) {
+        Log.d(TAG, new Date().toString());
+        if (PreferenceManager.getDefaultSharedPreferences(context)
+                .getBoolean(ChatApplication.LOCATION_ON_FIRST_RUN, false)) {
+            Message message = sendMessage(context);
+            if (!ChatApplication.isChatShow()) {
+                createNotification(message, context);
+            }
+        }
+    }
+
+
+    private Message sendMessage(Context context) {
         Date date = new Date();
         Message message = new Message(date.toString(), date, false);
-        Log.e(TAG, new Date().toString());
         context.getContentResolver().insert(MessageContract.CONTENT_URI, message.toContentValues());
-        if (!ChatApplication.isChatShow()) {
-            createNotification(message, context);
-        }
+        return message;
     }
 
     private void createNotification(Message message, Context context) {

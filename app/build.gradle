@@ -4,11 +4,6 @@ android {
     compileSdkVersion 23
     buildToolsVersion "24.0.1"
 
-    compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
-    }
-
     defaultConfig {
         applicationId "ru.rzn.myasoedov.ga.chat"
         minSdkVersion 15
@@ -19,10 +14,8 @@ android {
         buildConfigField "int", "DB_VERSION", "1"
         buildConfigField "String", "DB_NAME", "\"chat\""
         buildConfigField "int", "BOT_DEELAY", "3000"
+        buildConfigField "int", "LOCATION_OLD_DEELAY", "300000"
 
-        jackOptions {
-            enabled true
-        }
     }
     buildTypes {
         release {

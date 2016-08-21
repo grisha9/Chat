@@ -1,6 +1,7 @@
 package ru.rzn.myasoedov.ga.chat;
 
 import android.app.LoaderManager;
+import android.app.NotificationManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.CursorLoader;
@@ -9,6 +10,7 @@ import android.content.IntentFilter;
 import android.content.Loader;
 import android.database.Cursor;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
 import android.util.Log;
@@ -51,6 +53,7 @@ public class ChatActivity extends AppCompatActivity implements LoaderManager.Loa
 
         createListeners(listView, button, newMessageButton, text);
         createBroadcatReceivers(listView, newMessageButton);
+        determineLocation();
         getLoaderManager().initLoader(0, null, this);
     }
 
@@ -137,12 +140,16 @@ public class ChatActivity extends AppCompatActivity implements LoaderManager.Loa
 
     private void createListeners(final ListView listView, final Button button,
                                  final Button newMessageButton, final TextView text) {
-        button.setOnClickListener(v -> {
-            if (!TextUtils.isEmpty(text.getText())) {
-                Message message = new Message(text.getText().toString(), new Date(), true);
-                text.setText("");
-                getContentResolver().insert(MessageContract.CONTENT_URI, message.toContentValues());
-                newMessageButton.performClick();
+        button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (!TextUtils.isEmpty(text.getText())) {
+                    Message message = new Message(text.getText().toString(), new Date(), true);
+                    text.setText("");
+                    getContentResolver().insert(MessageContract.CONTENT_URI,
+                            message.toContentValues());
+                    newMessageButton.performClick();
+                }
             }
         });
         listView.setOnScrollListener(new AbsListView.OnScrollListener() {
@@ -157,16 +164,27 @@ public class ChatActivity extends AppCompatActivity implements LoaderManager.Loa
                 Log.e("d", firstVisibleItem + "-" + lastVisiblePosition + "-" + totalItemCount);
                 if (totalItemCount - lastVisiblePosition < NOT_SCROLL_OFFSET_ITEM) {
                     BotReceiver.count = 0;
+                    ((NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE)).cancel(0);
                     newMessageButton.setVisibility(View.GONE);
                 } else {
                     listView.setTranscriptMode(AbsListView.TRANSCRIPT_MODE_NORMAL);
                 }
             }
         });
-        newMessageButton.setOnClickListener(v -> {
-            listView.setTranscriptMode(AbsListView.TRANSCRIPT_MODE_ALWAYS_SCROLL);
-            listView.post(() -> listView.setSelection(listView.getCount() - 1));
-        });
+        newMessageButton.setOnClickListener(
+                new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        listView.setTranscriptMode(AbsListView.TRANSCRIPT_MODE_ALWAYS_SCROLL);
+                        listView.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                listView.setSelection(listView.getCount() - 1);
+                            }
+                        });
+                    }
+                }
+        );
     }
 
     private void createBroadcatReceivers(final ListView listView, final Button newMessageButton) {
@@ -175,12 +193,18 @@ public class ChatActivity extends AppCompatActivity implements LoaderManager.Loa
             public void onReceive(Context context, Intent intent) {
                 ListAdapter adapter = listView.getAdapter();
                 if (adapter != null && (adapter.getCount() - listView.getLastVisiblePosition()) < NOT_SCROLL_OFFSET_ITEM) {
-                    //newMessageButton.setVisibility(View.GONE);
                     listView.setTranscriptMode(AbsListView.TRANSCRIPT_MODE_ALWAYS_SCROLL);
                 } else {
                     newMessageButton.setVisibility(View.VISIBLE);
                 }
             }
         };
+    }
+
+    private void determineLocation() {
+        if (!PreferenceManager.getDefaultSharedPreferences(this)
+                .getBoolean(ChatApplication.LOCATION_ON_FIRST_RUN, false)) {
+            getChatApplication().determineLocation();
+        }
     }
 }

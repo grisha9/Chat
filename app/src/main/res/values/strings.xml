@@ -4,4 +4,7 @@
     <string name="new_message">new message</string>
     <string name="action_exit">exit</string>
     <string name="new_messages">new messages</string>
+    <string name="no_location_permission">No permisions. add permission to Chat app and re run it</string>
+    <string name="no_location_providers">No location providers. Enable gps or mobile network and re run app</string>
+    <string name="provider_was_disabled">%s provider was disabled. Enable it and re run app</string>
 </resources>
