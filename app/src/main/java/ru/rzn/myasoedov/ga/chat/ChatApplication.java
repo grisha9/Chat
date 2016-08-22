@@ -49,7 +49,8 @@ public class ChatApplication extends Application implements LocationListener {
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
     public void startBot() {
         int currentApiVersion = android.os.Build.VERSION.SDK_INT;
-        if (currentApiVersion >= android.os.Build.VERSION_CODES.LOLLIPOP && !checkJobRunning()) {
+        if (currentApiVersion >= android.os.Build.VERSION_CODES.LOLLIPOP) {
+            if (checkJobRunning()) return;
             ComponentName serviceComponent = new ComponentName(this, BotJobService.class);
             JobInfo.Builder builder = new JobInfo.Builder(JOB_ID, serviceComponent)
                     .setRequiredNetworkType(JobInfo.NETWORK_TYPE_NONE)
